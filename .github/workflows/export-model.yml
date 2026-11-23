@@ -1,0 +1,34 @@
+name: Export htdemucs ONNX
+
+on:
+  workflow_dispatch:
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Bağımlılıklar
+        run: |
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
+          pip install demucs==4.0.1 onnx onnxruntime numpy soundfile
+      - name: STFT referans testi
+        working-directory: python
+        run: python spec_reference.py
+      - name: ONNX dışa aktar (kendi içinde eşdeğerlik kontrolü yapar)
+        working-directory: python
+        run: python export_htdemucs_onnx.py --out htdemucs.onnx
+      - name: Hat doğrulaması (Kotlin aynası vs gerçek htdemucs)
+        working-directory: python
+        run: python verify_pipeline.py --onnx htdemucs.onnx | tee verify.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: htdemucs-onnx
+          path: |
+            python/htdemucs.onnx
+            python/verify.txt
+          compression-level: 0
