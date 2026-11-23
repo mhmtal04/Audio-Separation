@@ -1,1 +1,6 @@
-
+torch>=2.1
+demucs==4.0.1
+onnx
+onnxruntime
+numpy
+soundfile
