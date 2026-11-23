@@ -12,10 +12,9 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      -       - name: Bağımlılıklar
+      - name: Bağımlılıklar
         run: |
-          python -m pip install --upgrade pip
-          pip install --index-url https://download.pytorch.org/whl/cpu torch==2.9.1 torchaudio==2.9.1
+          pip install torch --index-url https://download.pytorch.org/whl/cpu
           pip install demucs==4.0.1 onnx onnxruntime numpy soundfile
       - name: STFT referans testi
         working-directory: python
