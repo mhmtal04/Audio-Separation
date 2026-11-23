@@ -1,5 +1,8 @@
-# Object file
-*.o
-
-# Ada Library Information
-*.ali
+.gradle/
+build/
+local.properties
+*.iml
+.idea/
+*.onnx
+*.jks
+*.keystore
