@@ -14,6 +14,8 @@ data class AudioInfo(
     val durationMs: Long,
     val sampleRate: Int,
     val channels: Int,
+    val bitrate: Int = 0,
+    val cover: ByteArray? = null,
 )
 
 /** Stereo, interleaved (L,R,L,R...) 16-bit PCM, kaynak örnekleme oranında. */
@@ -29,18 +31,43 @@ object AudioDecoder {
         throw IllegalArgumentException("Dosyada ses akışı bulunamadı.")
     }
 
+    private fun prettyFormat(mime: String) = when (mime.substringAfter('/').lowercase()) {
+        "mpeg" -> "MP3"
+        "mp4a-latm" -> "AAC"
+        "flac" -> "FLAC"
+        "vorbis" -> "OGG"
+        "opus" -> "OPUS"
+        "raw" -> "WAV"
+        else -> mime.substringAfter('/').uppercase()
+    }
+
     fun probe(ctx: Context, uri: Uri, name: String): AudioInfo {
         val ex = MediaExtractor()
         try {
             ex.setDataSource(ctx, uri, null)
             val (_, f) = audioTrack(ex)
             val mime = f.getString(MediaFormat.KEY_MIME) ?: "?"
+            var cover: ByteArray? = null
+            var bitrate = if (f.containsKey(MediaFormat.KEY_BIT_RATE)) f.getInteger(MediaFormat.KEY_BIT_RATE) else 0
+            val mmr = android.media.MediaMetadataRetriever()
+            try {
+                mmr.setDataSource(ctx, uri)
+                cover = mmr.embeddedPicture
+                if (bitrate == 0) {
+                    bitrate = mmr.extractMetadata(android.media.MediaMetadataRetriever.METADATA_KEY_BITRATE)?.toIntOrNull() ?: 0
+                }
+            } catch (_: Exception) {
+            } finally {
+                try { mmr.release() } catch (_: Exception) {}
+            }
             return AudioInfo(
                 name = name,
-                format = mime.substringAfter('/').uppercase(),
+                format = prettyFormat(mime),
                 durationMs = if (f.containsKey(MediaFormat.KEY_DURATION)) f.getLong(MediaFormat.KEY_DURATION) / 1000 else 0,
                 sampleRate = f.getInteger(MediaFormat.KEY_SAMPLE_RATE),
                 channels = f.getInteger(MediaFormat.KEY_CHANNEL_COUNT),
+                bitrate = bitrate,
+                cover = cover,
             )
         } finally {
             ex.release()
