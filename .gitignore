@@ -4,5 +4,6 @@ local.properties
 *.iml
 .idea/
 *.onnx
+model-cache/
 *.jks
 *.keystore

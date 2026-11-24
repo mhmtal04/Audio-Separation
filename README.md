@@ -36,7 +36,13 @@ Release için repo secrets: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`,
 sonra workflow'u elle çalıştırın.
 Yerelde: Android Studio ile açın ya da `gradle :app:assembleDebug` (Gradle 8.9, JDK 17).
 
-## 3) Telefonda
+## 3) Telefonda (model APK içinde gömülü)
+
+`android.yml` modeli derleme sırasında üretir (önbelleğe alır) ve APK'ya gömer; kullanıcı model seçmez. İlk açılışta model uygulama deposuna kopyalanır.
+
+(Eski elle yükleme akışı yalnızca modelsiz yerel derlemelerde görünür.)
+
+### Eski akış
 
 1. `htdemucs.onnx` dosyasını telefona kopyalayın.
 2. Uygulamada **Model dosyasını seç** → dosyayı seçin (uygulama deposuna kopyalanır).
