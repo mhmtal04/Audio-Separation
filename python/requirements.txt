@@ -1,6 +1,16 @@
-torch>=2.1
-demucs==4.0.1
+# Sıra önemli: önce CPU torch/torchaudio, sonra demucs bağımlılıksız
+numpy<2
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.5.1
+torchaudio==2.5.1
+demucs==4.0.1 --no-deps
+dora-search
+einops
+julius
+lameenc
+openunmix
+pyyaml
+tqdm
 onnx
 onnxruntime
-numpy
 soundfile
