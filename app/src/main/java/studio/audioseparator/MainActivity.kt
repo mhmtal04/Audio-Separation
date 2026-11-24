@@ -55,6 +55,11 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val prev = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { t, e ->
+            try { java.io.File(cacheDir, "last_crash.txt").writeText(e.stackTraceToString().take(1500)) } catch (_: Throwable) {}
+            prev?.uncaughtException(t, e)
+        }
         setContent {
             MaterialTheme(colorScheme = darkColorScheme(primary = Accent, background = Bg, surface = Card)) {
                 Screen(vm)
@@ -100,13 +105,17 @@ private fun Screen(vm: SeparatorViewModel) {
         // Model
         Box2 {
             Text("AI MODELİ (htdemucs · ONNX)", color = Dim, fontSize = 11.sp)
-            if (ui.modelReady) {
-                Text("Yüklü ✓", color = Color.White)
+            if (ui.modelBusy) {
+                Text("Model hazırlanıyor (yalnızca ilk açılışta)…", color = Color.White, fontSize = 13.sp)
+            } else if (ui.modelReady) {
+                Text(if (ui.modelBundled) "Uygulamayla birlikte geldi ✓" else "Yüklü ✓", color = Color.White)
             } else {
-                Text("Model yüklü değil. README'deki adımlarla model dosyasını üretin, sonra seçin.", color = Color.White, fontSize = 13.sp)
+                Text("Bu derlemede model gömülü değil. Model dosyasını seçin.", color = Color.White, fontSize = 13.sp)
             }
-            OutlinedButton(onClick = { pickModel.launch(arrayOf("*/*")) }, enabled = !ui.modelBusy && !ui.running) {
-                Text(if (ui.modelBusy) "Kopyalanıyor…" else if (ui.modelReady) "Modeli değiştir" else "Model dosyasını seç (.onnx)")
+            if (!ui.modelBundled) {
+                OutlinedButton(onClick = { pickModel.launch(arrayOf("*/*")) }, enabled = !ui.modelBusy && !ui.running) {
+                    Text(if (ui.modelReady) "Modeli değiştir" else "Model dosyasını seç (.onnx)")
+                }
             }
         }
 
