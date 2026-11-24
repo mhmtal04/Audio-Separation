@@ -8,8 +8,32 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Model önbelleği
+        id: modelcache
+        uses: actions/cache@v4
+        with:
+          path: model-cache/htdemucs.onnx
+          key: htdemucs-onnx-v1-${{ hashFiles('python/export_htdemucs_onnx.py') }}
+      - name: Modeli üret (önbellekte yoksa)
+        if: steps.modelcache.outputs.cache-hit != 'true'
+        run: |
+          pip install "numpy<2"
+          pip install torch==2.5.1 torchaudio==2.5.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install --no-deps demucs==4.0.1
+          pip install dora-search einops julius lameenc openunmix pyyaml tqdm onnx onnxruntime soundfile
+          mkdir -p model-cache
+          cd python && python export_htdemucs_onnx.py --out ../model-cache/htdemucs.onnx
+      - name: Modeli APK içine yerleştir
+        run: |
+          mkdir -p app/src/main/assets
+          cp model-cache/htdemucs.onnx app/src/main/assets/htdemucs.onnx
+          ls -la app/src/main/assets
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -23,13 +47,24 @@ jobs:
         with:
           name: debug-apk
           path: app/build/outputs/apk/debug/*.apk
+          compression-level: 0
 
   release:
-    # Yalnızca repo secrets tanımlıysa ve elle tetiklenirse çalışır.
+    # Yalnızca elle tetiklenir; repo secrets gerekir.
     if: github.event_name == 'workflow_dispatch'
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Model önbelleğinden al
+        uses: actions/cache/restore@v4
+        with:
+          path: model-cache/htdemucs.onnx
+          key: htdemucs-onnx-v1-${{ hashFiles('python/export_htdemucs_onnx.py') }}
+          fail-on-cache-miss: true
+      - run: |
+          mkdir -p app/src/main/assets
+          cp model-cache/htdemucs.onnx app/src/main/assets/htdemucs.onnx
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -52,3 +87,4 @@ jobs:
         with:
           name: release-apk
           path: app/build/outputs/apk/release/*.apk
+          compression-level: 0
