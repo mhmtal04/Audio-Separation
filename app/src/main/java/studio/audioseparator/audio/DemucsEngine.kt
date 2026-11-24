@@ -37,8 +37,10 @@ class DemucsEngine(modelFile: File) : AutoCloseable {
 
     init {
         val o = OrtSession.SessionOptions()
-        o.setIntraOpNumThreads(max(2, Runtime.getRuntime().availableProcessors() / 2))
-        o.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.ALL_OPT)
+        o.setIntraOpNumThreads((Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4))
+        o.setOptimizationLevel(OrtSession.SessionOptions.OptLevel.EXTENDED_OPT)
+        o.setCPUArenaAllocator(false)          // bellek şişmesini azaltır
+        o.setMemoryPatternOptimization(false)
         session = env.createSession(modelFile.absolutePath, o)
         val names = session.inputNames
         require("mix" in names && "cac" in names) {

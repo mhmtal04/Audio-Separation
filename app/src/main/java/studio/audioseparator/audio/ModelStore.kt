@@ -9,6 +9,23 @@ object ModelStore {
 
     fun file(ctx: Context) = File(File(ctx.filesDir, "models"), "htdemucs.onnx")
 
+    private const val ASSET = "htdemucs.onnx"
+
+    fun hasBundled(ctx: Context): Boolean =
+        try { ctx.assets.list("")?.contains(ASSET) == true } catch (_: Exception) { false }
+
+    /** APK içine gömülü modeli (varsa) uygulama deposuna kopyalar; zaten aynı boyuttaysa atlar. */
+    fun installFromAssets(ctx: Context) {
+        val dst = file(ctx)
+        dst.parentFile!!.mkdirs()
+        val size = ctx.assets.openFd(ASSET).use { it.length }
+        if (dst.exists() && dst.length() == size) return
+        val tmp = File(dst.parentFile, "htdemucs.onnx.part")
+        ctx.assets.open(ASSET).use { i -> tmp.outputStream().use { o -> i.copyTo(o, 1 shl 20) } }
+        if (dst.exists()) dst.delete()
+        if (!tmp.renameTo(dst)) throw IllegalStateException("Model kaydedilemedi.")
+    }
+
     fun isInstalled(ctx: Context) = file(ctx).let { it.exists() && it.length() > MIN_BYTES }
 
     /** Kullanıcının seçtiği .onnx dosyasını uygulama deposuna kopyalar. */
