@@ -49,6 +49,10 @@ Yerelde: Android Studio ile açın ya da `gradle :app:assembleDebug` (Gradle 8.9
 3. **Ses dosyası seç** → **AYRIŞTIR**.
 4. Sonuçta MIX / sessiz / solo / ses seviyesi, WAV ve ZIP dışa aktarma.
 
+## Arayüz (Aşama 3)
+
+Ana Sayfa · Ses Ayrıştırma (halka ilerleme, tahmini süre, iptal) · Sonuçlar (kanal kartları, dalga formu) · Mix Player · Projelerim (boyut, silme) · Arşiv (özel mix'ler) · Dışa Aktar (tek kanal / ZIP / özel mix). Ayrıştırma ön plan servisiyle çalışır.
+
 ## Bilinen sınırlar (Aşama 2)
 
 - Hız ve bellek ölçülmedi. Öneri: arm64, ≥ 6 GB RAM. Uzun şarkılar (> ~15 dk) bellekte tutulur.
